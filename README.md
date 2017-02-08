@@ -14,8 +14,7 @@
 2. 通过CAShapeLayer绘制波浪曲线，并不断改变垂直位置，来达到水面波动并上升的动画效果
 3. 同时绘制两个波形图，让它们彼此错开，下层的波形图层设置一定的透明度，两层水波交替波动时就达到波浪的视觉效果
 
-我这里采取了第三种方法，利用两层水波交替波动达到波浪效果
-**实现代码**
+我这里采取了第三种方法，利用两层水波交替波动达到波浪效果,实现代码如下：
 
 ```
 #pragma mark - drawRect
@@ -39,6 +38,11 @@
     
 }
 
+```
+
+**波浪绘制方法：**
+
+```
 
 #pragma mark - draw wave
 - (void)drawWaveColor:(UIColor *)color offsetx:(CGFloat)offsetx offsety:(CGFloat)offsety {
