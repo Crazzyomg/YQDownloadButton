@@ -51,7 +51,7 @@
     
     _topColor = [UIColor colorWithRed:79/255.0 green:240/255.0 blue:255/255.0 alpha:1];
     _bottomColor = [UIColor colorWithRed:79/255.0 green:240/255.0 blue:255/255.0 alpha:.3];
-    
+    //iOSy轴是向下的，刚开始的时候_wave_offsety是最大值
     _wave_offsety = (1-_progress) * (self.frame.size.height + 2* _wave_Amplitude);
     
     CGRect rect = self.frame;
@@ -84,6 +84,7 @@
         
         [_borderPath addClip];
     }
+    //同时绘制两个波形图
     [self drawWaveColor:_topColor offsetx:0 offsety:0];
     [self drawWaveColor:_bottomColor offsetx:_wave_h_distance offsety:_wave_v_distance];
     
@@ -103,7 +104,7 @@
     
     UIBezierPath *wave = [UIBezierPath bezierPath];
     for (float next_x= 0.f; next_x <= self.frame.size.width; next_x ++) {
-        //正弦函数
+        //正弦函数，绘制波形
         CGFloat next_y = _wave_Amplitude * sin(_wave_Cycle*next_x + _wave_offsetx + offsetx/self.bounds.size.width*2*M_PI) + _wave_offsety + offsety;
         if (next_x == 0) {
             [wave moveToPoint:CGPointMake(next_x, next_y - _wave_Amplitude)];
@@ -141,6 +142,7 @@
     checkAnimation.fromValue = @(0.0f);
     checkAnimation.toValue = @(1.0f);
     checkAnimation.delegate = self;
+    //这个可以起到判断不同anim的方法：KVO
     [checkAnimation setValue:@"checkAnimation" forKey:@"animationName"];
     [checkLayer addAnimation:checkAnimation forKey:nil];
     
@@ -150,8 +152,10 @@
 - (void)endAnimation {
     
     self.layer.borderColor = [UIColor clearColor].CGColor;
-    _vibrationWaveView.backgroundColor = [UIColor colorWithRed:79/255.0 green:240/255.0 blue:255/255.0 alpha:1];;
+    _vibrationWaveView.backgroundColor = [UIColor colorWithRed:79/255.0 green:240/255.0 blue:255/255.0 alpha:1];
+    // 为了不影响缩小后的效果，提前将振动波视图缩小
     _vibrationWaveView.transform = CGAffineTransformMakeScale(.9, .9);
+    // 视图缩小动画
     [UIView animateWithDuration: .9
                           delay: 1.2
                         options: UIViewAnimationOptionCurveEaseInOut
@@ -160,6 +164,7 @@
                          
                      }
                      completion:^(BOOL finished) {
+                         // 震动波效果
                          [UIView animateWithDuration: 2.1
                                           animations:^{
                                               _vibrationWaveView.transform = CGAffineTransformMakeScale(3, 3);
@@ -168,13 +173,14 @@
                                           completion:^(BOOL finished) {
                                               [_vibrationWaveView removeFromSuperview];
                                           }];
-                         
+                         //弹簧震动效果
                          [UIView animateWithDuration: 1.f
                                                delay: 0.2
                               usingSpringWithDamping: 0.4
                                initialSpringVelocity: 0
                                              options: UIViewAnimationOptionCurveEaseInOut
                                           animations:^{
+                                              // 视图瞬间增大一倍
                                               self.transform = CGAffineTransformMakeScale(1.8, 1.8);
                                               self.transform = CGAffineTransformMakeScale(1.0, 1.0);
                                           }
@@ -191,31 +197,33 @@
     _wave_offsetx += _wave_move_width*_wave_scale;
     [self setNeedsDisplay];
     
+    //偏移较小的时候加速，节省时间
     if (_wave_offsety < 5.0) {
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            [self checkAnimation];
-            [self endAnimation];
-            NSLog(@"finish");
-        });
+        _offsety_scale += 1.0;
+    }
+    
+    //水满了，做打钩动画和震荡扩散动画并停止波浪动画
+    if (_wave_offsety <= 0.01) {
+        [self checkAnimation];
+        [self endAnimation];
+        [self stopWave];
+        NSLog(@"finish");
     }
 }
 
-#pragma mark - reStart
+#pragma mark - start
 - (void)startWave {
-    
     if (!_waveDisplaylink) {
+        //启动同步渲染绘制波纹
         _waveDisplaylink = [CADisplayLink displayLinkWithTarget:self selector:@selector(changeoff)];
         [_waveDisplaylink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     }
 }
 
-- (void)dealloc {
-    if (_waveDisplaylink) {
-        [_waveDisplaylink invalidate];
-        _waveDisplaylink = nil;
-    }
-    
+#pragma mark - stop
+- (void)stopWave {
+    [_waveDisplaylink invalidate];
+    _waveDisplaylink = nil;
 }
 
 #pragma mark - 懒加载
