@@ -32,8 +32,5 @@
 @property (nonatomic, assign) CGFloat wave_v_distance;
 //水波速率
 @property (nonatomic, assign) CGFloat wave_scale;
-//是否需要进度变化的动画，默认YES
-@property (nonatomic, assign) BOOL progress_animation;
-
 - (void)startDownload;
 @end

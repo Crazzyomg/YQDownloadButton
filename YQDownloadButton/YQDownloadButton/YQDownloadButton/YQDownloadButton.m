@@ -52,7 +52,6 @@
     _topColor = [UIColor colorWithRed:79/255.0 green:240/255.0 blue:255/255.0 alpha:1];
     _bottomColor = [UIColor colorWithRed:79/255.0 green:240/255.0 blue:255/255.0 alpha:.3];
     
-    _progress_animation = YES;
     _wave_offsety = (1-_progress) * (self.frame.size.height + 2* _wave_Amplitude);
     
     CGRect rect = self.frame;
@@ -92,9 +91,8 @@
 
 #pragma mark - draw wave
 - (void)drawWaveColor:(UIColor *)color offsetx:(CGFloat)offsetx offsety:(CGFloat)offsety {
-    //波浪动画，所以进度的实际操作范围是，多加上两个振幅的高度,到达设置进度的位置y坐标
+    //波浪动画，进度的实际操作范围是，多加上两个振幅的高度,到达设置进度的位置y坐标
     CGFloat end_offY = (1-_progress) * (self.frame.size.height + 2* _wave_Amplitude);
-    if (_progress_animation) {
         if (_wave_offsety != end_offY) {
             if (end_offY < _wave_offsety) {//上升
                 _wave_offsety = MAX(_wave_offsety-=(_wave_offsety - end_offY)*_offsety_scale, end_offY);
@@ -102,9 +100,6 @@
                 _wave_offsety = MIN(_wave_offsety+=(end_offY-_wave_offsety)*_offsety_scale, end_offY);
             }
         }
-    } else {
-        _wave_offsety = end_offY;
-    }
     
     UIBezierPath *wave = [UIBezierPath bezierPath];
     for (float next_x= 0.f; next_x <= self.frame.size.width; next_x ++) {
